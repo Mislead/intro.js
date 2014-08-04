@@ -13,6 +13,7 @@
  // https://github.com/usablica/intro.js/pull/168/files - Locking active element
  // https://github.com/usablica/intro.js/pull/195 - IE8 Fixes - Prevents modal from jerking around!
  // Line 771 - z-index hack fix for IE8
+ // Switched off keyboard navigation and added: if (this._options.keyboardNavigation) { before detaching onkeydown event
 
 (function (root, factory) {
   if (typeof exports === 'object') {
@@ -57,7 +58,9 @@
       /* Show step numbers in introduction? */
       showStepNumbers: true,
       /* Let user use keyboard to navigate the tour? */
-      keyboardNavigation: true,
+
+      /* CUSTOM - Defaulting to false for IE8 sake*/
+      keyboardNavigation: false,
       /* Show tour control buttons? */
       showButtons: true,
       /* Show tour bullets? */
@@ -386,7 +389,9 @@
     if (window.removeEventListener) {
       window.removeEventListener('keydown', this._onKeyDown, true);
     } else if (document.detachEvent) { //IE
-      document.detachEvent('onkeydown', this._onKeyDown);
+      if (this._options.keyboardNavigation) {
+            document.detachEvent('onkeydown', this._onKeyDown);
+      }
     }
 
     //set the step to zero
