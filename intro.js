@@ -11,6 +11,8 @@
  // https://github.com/heelhook/chardin.js/issues/26 - Fix for fixed position elements
  // Changed _getOffset function to work with tooltip on element within scroll: https://github.com/usablica/intro.js/issues/210
  // https://github.com/usablica/intro.js/pull/168/files - Locking active element
+ // https://github.com/usablica/intro.js/pull/195 - IE8 Fixes - Prevents modal from jerking around!
+ // Line 771 - z-index hack fix for IE8
 
 (function (root, factory) {
   if (typeof exports === 'object') {
@@ -227,8 +229,15 @@
         if (this._options.keyboardNavigation) {
           document.attachEvent('onkeydown', self._onKeyDown);
         }
+
         //for window resize
-        document.attachEvent("onresize", self._onResize);
+        var msie=navigator.appVersion.toLowerCase();
+        var ieVersion=(msie.indexOf('msie')>-1)?parseInt(msie.replace(/.*msie[ ]/,'').match(/^[0-9]+/)):0;
+        if (ieVersion <= 8) {
+          document.body.onresize = self._onResize;
+        }else{
+          document.attachEvent("onresize", self._onResize);
+        }
       }
     }
     return false;
@@ -334,7 +343,7 @@
     }
 
     //for fade-out animation
-    overlayLayer.style.opacity = 0;
+    overlayLayer.style.visibility='hidden';
     setTimeout(function () {
       if (overlayLayer.parentNode) {
         overlayLayer.parentNode.removeChild(overlayLayer);
@@ -552,7 +561,7 @@
           nextTooltipButton    = oldHelperLayer.querySelector('.introjs-nextbutton');
 
       //hide the tooltip
-      oldtooltipContainer.style.opacity = 0;
+      oldtooltipContainer.style.visibility='hidden';
 
       if (oldHelperNumberLayer != null) {
         var lastIntroItem = this._introItems[(targetElement.step - 2 >= 0 ? targetElement.step - 2 : 0)];
@@ -595,8 +604,11 @@
         oldHelperLayer.querySelector('.introjs-bullets li > a[data-stepnumber="' + targetElement.step + '"]').className = 'active';
 
         //show the tooltip
-        oldtooltipContainer.style.opacity = 1;
-        if (oldHelperNumberLayer) oldHelperNumberLayer.style.opacity = 1;
+        oldtooltipContainer.style.visibility='visible';
+        if (oldHelperNumberLayer) oldtooltipContainer.style.visibility='visible';
+        try{
+            nextTooltipButton.focus();//IE8 forcus method may throw exception when element is not visible
+        }catch(e){}
       }, 350);
 
     } else {
@@ -721,6 +733,10 @@
 
       //set proper position
       _placeTooltip.call(self, targetElement.element, tooltipLayer, arrowLayer, helperNumberLayer);
+      //Set focus on "next" button, so that hitting Enter always moves you onto the next step
+      try{
+        nextTooltipButton.focus();//IE8 forcus method may throw exception when element is not visible
+      }catch(e){}
     }
 
     if (this._currentStep == 0 && this._introItems.length > 1) {
@@ -736,9 +752,6 @@
       nextTooltipButton.className = 'introjs-button introjs-nextbutton';
       skipTooltipButton.innerHTML = this._options.skipLabel;
     }
-
-    //Set focus on "next" button, so that hitting Enter always moves you onto the next step
-    nextTooltipButton.focus();
 
     //add target element position style
     targetElement.element.className += ' introjs-showElement';
@@ -756,9 +769,10 @@
 
       //fix The Stacking Contenxt problem.
       //More detail: https://developer.mozilla.org/en-US/docs/Web/Guide/CSS/Understanding_z_index/The_stacking_context
+      var zIndexIE = _getPropValue(parentElm, 'zIndex');
       var zIndex = _getPropValue(parentElm, 'z-index');
       var opacity = parseFloat(_getPropValue(parentElm, 'opacity'));
-      if (/[0-9]+/.test(zIndex) || opacity < 1) {
+      if (/[0-9]+/.test(zIndexIE) || /[0-9]+/.test(zIndex) || opacity < 1) {
         parentElm.className += ' introjs-fixParent';
       }
 
