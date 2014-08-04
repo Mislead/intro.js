@@ -10,6 +10,7 @@
 
  // https://github.com/heelhook/chardin.js/issues/26 - Fix for fixed position elements
  // Changed _getOffset function to work with tooltip on element within scroll: https://github.com/usablica/intro.js/issues/210
+ // https://github.com/usablica/intro.js/pull/168/files - Locking active element
 
 (function (root, factory) {
   if (typeof exports === 'object') {
@@ -62,7 +63,9 @@
       /* Scroll to highlighted element? */
       scrollToElement: true,
       /* Set the overlay opacity */
-      overlayOpacity: 0.8
+      overlayOpacity: 0.8,
+      /* Should the current active element be locked? */
+      lockActiveElement: true;
     };
   }
 
@@ -344,6 +347,12 @@
       helperLayer.parentNode.removeChild(helperLayer);
     }
 
+    // remove locking layer
+    var helperLockLayer = targetElement.querySelector('.introjs-helperLockLayer');
+    if (helperLockLayer) {
+      helperLockLayer.parentNode.removeChild(helperLockLayer);
+    }
+
     //remove intro floating element
     var floatingElement = document.querySelector('.introjsFloatingElement');
     if (floatingElement) {
@@ -494,6 +503,7 @@
 
       var currentElement  = this._introItems[this._currentStep],
           elementPosition = _getOffset(currentElement.element),
+          self = this,
           widthHeightPadding = 10;
 
       if (currentElement.position == 'floating') {
@@ -505,6 +515,17 @@
                                         'height:' + (elementPosition.height + widthHeightPadding)  + 'px; ' +
                                         'top:'    + (elementPosition.top    - 5)   + 'px;' +
                                         'left: '  + (elementPosition.left   - 5)   + 'px;');
+
+      if(this._options.lockActiveElement && helperLayer.className != 'introjs-helperLockLayer'){
+      	  var helperLockLayer = document.querySelector('.introjs-helperLockLayer');
+
+      	  if(!helperLockLayer){
+      		  helperLockLayer = document.createElement('div');
+      		  helperLockLayer.className = 'introjs-helperLockLayer';
+      		  this._targetElement.appendChild(helperLockLayer);
+      	  }
+      	  _setHelperLayerPosition.call(self, helperLockLayer);
+      }
     }
   }
 
