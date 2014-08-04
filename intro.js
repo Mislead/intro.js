@@ -65,7 +65,7 @@
       /* Set the overlay opacity */
       overlayOpacity: 0.8,
       /* Should the current active element be locked? */
-      lockActiveElement: true;
+      lockActiveElement: true
     };
   }
 
