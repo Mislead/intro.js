@@ -6,6 +6,10 @@
  * Copyright (C) 2013 usabli.ca - A weekend project by Afshin Mehrabani (@afshinmeh)
  */
 
+ /* This has some tweaks from the original intro.js in order to get things working for us */
+
+ // https://github.com/heelhook/chardin.js/issues/26 - Fix for fixed position elements
+
 (function (root, factory) {
   if (typeof exports === 'object') {
     // CommonJS
@@ -512,10 +516,6 @@
    */
   function _showElement(targetElement) {
 
-    if (typeof (this._introChangeCallback) !== 'undefined') {
-        this._introChangeCallback.call(this, targetElement.element);
-    }
-
     var self = this,
         oldHelperLayer = document.querySelector('.introjs-helperLayer'),
         elementPosition = _getOffset(targetElement.element);
@@ -761,6 +761,11 @@
 
     if (typeof (this._introAfterChangeCallback) !== 'undefined') {
         this._introAfterChangeCallback.call(this, targetElement.element);
+    }
+
+    /* Custom Fix: https://github.com/heelhook/chardin.js/issues/26 */
+    if (typeof (this._introChangeCallback) !== 'undefined') {
+            this._introChangeCallback.call(this, targetElement.element);
     }
   }
 
